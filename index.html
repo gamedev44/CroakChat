@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PEPO CHAT – Loading</title>
+  <style>
+    /* Full-page gradient background */
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #001100, #003300);
+      color: #a5ff8b;
+    }
+
+    /* Loader container */
+    #loader {
+      position: relative;
+      text-align: center;
+      opacity: 1;
+      transition: opacity 1.5s ease-in-out;
+      animation: pulse 2.5s infinite;
+    }
+    #loader.fade-out {
+      opacity: 0;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    /* Logo styling */
+    .logo {
+      font-size: 4rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+      margin-bottom: 16px;
+    }
+
+    /* Catchphrase styling */
+    .catchphrase {
+      font-size: 1.2rem;
+      font-style: italic;
+      color: #88ff88;
+      margin-bottom: 20px;
+      text-shadow: 0 0 6px #88ff88;
+    }
+
+    /* Tagline styling */
+    .tagline {
+      font-size: 1.5rem;
+      color: #88ff88;
+      margin-bottom: 24px;
+      text-shadow: 0 0 6px #88ff88;
+    }
+
+    /* Enlarged GIF */
+    .frog-gif {
+      width: 320px;
+      max-width: 80vw;
+      border: 4px solid #00ff00;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.7);
+      margin-bottom: 24px;
+    }
+
+    /* Bottom-center loading animation */
+    .bottom-loader {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      opacity: 0.8;
+    }
+  </style>
+  <script>
+    window.addEventListener("load", () => {
+      const loader = document.getElementById("loader");
+      // Fade out after 3 seconds
+      setTimeout(() => {
+        loader.classList.add("fade-out");
+      }, 3000);
+      // Redirect after 6 seconds
+      setTimeout(() => {
+        window.location.href = "frogchat.html";
+      }, 6000);
+    });
+  </script>
+</head>
+<body>
+  <div id="loader">
+    <div class="logo">🐸 CROAK 🐸</div>
+    <div class="catchphrase">“Were Now Sending you Down-Stream.”</div>
+    <div class="tagline">Loading HOP Social Hub…</div>
+    <img
+      src="https://i.ibb.co/FLRtpVsF/Jedi-Frog-Party-XL.gif"
+      class="frog-gif"
+      alt="Dancing Frog"
+    />
+    <img
+      src="https://i.ibb.co/S3W3w0y/loading.gif"
+      class="bottom-loader"
+      alt="Loading"
+    />
+  </div>
+</body>
+</html>

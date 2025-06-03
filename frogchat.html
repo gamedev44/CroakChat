@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pepo Chat – FrogChat</title>
+<style>
+  /* GLOBAL RESET */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  html, body {
+    width: 100%;
+    height: 100%;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  /* THEME: GREEN */
+  .theme-green {
+    --bg-gradient: linear-gradient(135deg, #0a2b0a, #163e16);
+    --text-color: #a5ff8b;
+    --panel-bg: rgba(10, 30, 10, 0.9);
+    --button-bg: #1f4d1f;
+    --button-hover-bg: #2e7d2e;
+    --button-text: #a5ff8b;
+    --input-bg: #0b330b;
+    --input-border: #4caf50;
+    --input-text: #c0ffb0;
+    --scrollbar-bg: #0a2b0a;
+    --scrollbar-thumb: #3e8e41;
+    --panel-header-bg: #1b5e20;
+    --panel-header-text: #d4ffd5;
+    --panel-border: #4caf50;
+    background: var(--bg-gradient);
+    color: var(--text-color);
+  }
+
+  /* THEME: NEON */
+  .theme-neon {
+    --bg-gradient: linear-gradient(135deg, #0a0015, #300030);
+    --text-color: #66ffff;
+    --panel-bg: rgba(10, 10, 40, 0.9);
+    --button-bg: #001f3f;
+    --button-hover-bg: #003f7f;
+    --button-text: #66ffff;
+    --input-bg: #001a2e;
+    --input-border: #00ffff;
+    --input-text: #aaffff;
+    --scrollbar-bg: #0a0015;
+    --scrollbar-thumb: #00e5e5;
+    --panel-header-bg: #003960;
+    --panel-header-text: #ccffff;
+    --panel-border: #00e5e5;
+    background: var(--bg-gradient);
+    color: var(--text-color);
+  }
+
+  /* THEME: DARK */
+  .theme-dark {
+    --bg-gradient: linear-gradient(135deg, #1a1a1a, #333333);
+    --text-color: #dddddd;
+    --panel-bg: rgba(30, 30, 30, 0.95);
+    --button-bg: #3c3c3c00;
+    --button-hover-bg: #666666;
+    --button-text: #dddddd;
+    --input-bg: #2b2b2b;
+    --input-border: #555555;
+    --input-text: #f0f0f0;
+    --scrollbar-bg: #1a1a1a;
+    --scrollbar-thumb: #555555;
+    --panel-header-bg: #3d3d3d;
+    --panel-header-text: #ffffff;
+    --panel-border: #555555;
+    background: var(--bg-gradient);
+    color: var(--text-color);
+  }
+
+  /* SIDEBAR */
+  #sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 64px;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: 16px;
+    gap: 20px;
+    border-right: 2px solid var(--panel-border);
+    z-index: 30;
+  }
+  #sidebar img.logo {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid var(--panel-border);
+    box-shadow: 0 0 8px var(--panel-border);
+    transition: transform 0.2s ease;
+  }
+  #sidebar img.logo:hover {
+    transform: scale(1.1);
+  }
+  #sidebar button {
+    background: var(--button-bg);
+    color: var(--button-text);
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+  #sidebar button:hover {
+    background: var(--button-hover-bg);
+    transform: scale(1.1);
+  }
+
+  /* PANEL CONTAINER */
+  #panel-container {
+    position: absolute;
+    top: 0;
+    left: 64px;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+  }
+
+  /* HOMEPAGE CONTENT */
+  #home-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 20px;
+    overflow-y: auto;
+    color: var(--text-color);
+  }
+  #home-content h1 {
+    margin-bottom: 16px;
+    font-size: 2em;
+    text-align: center;
+  }
+  #home-content ul {
+    list-style: none;
+    margin-top: 20px;
+  }
+  #home-content ul li {
+    margin-bottom: 12px;
+  }
+  #home-content ul li a {
+    color: var(--button-hover-bg);
+    text-decoration: none;
+    font-weight: bold;
+  }
+  #home-content ul li a:hover {
+    text-decoration: underline;
+  }
+
+  /* PANEL STYLES */
+  .panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 340px;
+    height: 100%;
+    background: transparent;               /* hidden until toggled */
+    border-left: 2px solid var(--panel-border);
+    box-shadow: none;                      /* no shadow when hidden */
+    display: none;
+    flex-direction: column;
+    z-index: 20;
+  }
+  .panel[data-visible="true"] {
+    display: flex;
+    background: var(--panel-bg);           /* visible overlay */
+    box-shadow: -4px 0 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .panel-header {
+    background: var(--panel-header-bg);
+    color: var(--panel-header-text);
+    padding: 12px 16px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--panel-border);
+  }
+  .panel-header button.close-btn {
+    background: none;
+    border: none;
+    color: var(--panel-header-text);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .panel-header button.close-btn:hover {
+    color: var(--button-hover-bg);
+  }
+
+  .panel-content {
+    flex: 1;
+    padding: 12px 16px;
+    overflow-y: auto;
+  }
+
+  /* Scrollbar Styling */
+  .panel-content::-webkit-scrollbar {
+    width: 8px;
+    background: var(--scrollbar-bg);
+  }
+  .panel-content::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+  }
+
+  /* CHAT PANEL */
+  #chat-panel .chat-title {
+    margin-bottom: 12px;
+  }
+  #chat-panel .chat-message {
+    background-color: rgba(0, 32, 0, 0.85);
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    color: var(--text-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
+  .chat-message.user-message {
+    background-color: rgba(0, 48, 0, 0.9);
+    border-left: 3px solid var(--button-hover-bg);
+  }
+  .chat-message.dm-message {
+    background-color: rgba(48, 0, 0, 0.85);
+    border-left: 3px solid #ff4444;
+  }
+  .chat-notice {
+    text-align: center;
+    font-size: 0.9em;
+    margin-bottom: 14px;
+    color: var(--button-hover-bg);
+  }
+  .chat-input-area {
+    padding: 12px 16px;
+    border-top: 1px solid var(--panel-border);
+    display: flex;
+    gap: 8px;
+    background: var(--panel-header-bg);
+  }
+  .chat-input-area input {
+    flex: 1;
+    padding: 10px;
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .chat-input-area input:focus {
+    border-color: var(--button-hover-bg);
+    outline: none;
+  }
+  .chat-input-area button {
+    padding: 10px 16px;
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .chat-input-area button:hover {
+    background-color: var(--button-hover-bg);
+  }
+
+  /* REMOTE PANEL */
+  #remote-panel label {
+    margin-bottom: 8px;
+    color: var(--text-color);
+  }
+  #remote-panel input {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--input-text);
+    margin-bottom: 16px;
+    border-radius: 4px;
+    transition: border-color 0.2s ease;
+  }
+  #remote-panel input:focus {
+    border-color: var(--button-hover-bg);
+    outline: none;
+  }
+  #remote-panel button {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  #remote-panel button:hover {
+    background-color: var(--button-hover-bg);
+  }
+  #remote-status {
+    margin-top: 16px;
+    font-size: 0.9em;
+    color: var(--button-hover-bg);
+  }
+
+  /* FRIENDS PANEL */
+  #friends-panel .friend-entry {
+    background-color: rgba(0, 30, 0, 0.85);
+    padding: 8px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    color: var(--text-color);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  }
+  #friends-panel .friend-entry strong {
+    margin-left: 6px;
+  }
+  #friends-panel button {
+    margin-top: 16px;
+    padding: 10px 16px;
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  #friends-panel button:hover {
+    background-color: var(--button-hover-bg);
+  }
+
+  /* SETTINGS PANEL */
+  #settings-panel select,
+  #settings-panel input[type="range"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 14px;
+    background: var(--input-bg);
+    color: var(--input-text);
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    transition: border-color 0.2s ease;
+  }
+  #settings-panel select:focus,
+  #settings-panel input[type="range"]:focus {
+    border-color: var(--button-hover-bg);
+    outline: none;
+  }
+  #settings-panel button {
+    padding: 10px 16px;
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  #settings-panel button:hover {
+    background-color: var(--button-hover-bg);
+  }
+  #settings-panel h2,
+  #settings-panel label {
+    color: var(--text-color);
+  }
+</style>
+
+  <script>
+    // On load: apply saved theme (default to “green” if not set)
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!localStorage.getItem("theme")) {
+        localStorage.setItem("theme", "green");
+      }
+      const saved = localStorage.getItem("theme");
+      document.documentElement.classList.add("theme-" + saved);
+      document.getElementById("theme-select").value = saved;
+      document.getElementById("volume").value = localStorage.getItem("volume") || 75;
+    });
+
+    // Toggle panels
+    function togglePanel(name) {
+      const panels = ["chat", "remote", "friends", "settings"];
+      panels.forEach(id => {
+        const el = document.getElementById(id + "-panel");
+        if (id === name) {
+          const vis = el.getAttribute("data-visible") === "true";
+          el.setAttribute("data-visible", !vis);
+        } else {
+          el.setAttribute("data-visible", "false");
+        }
+      });
+    }
+
+    // Remote connect mock
+    function connectRemote() {
+      const code = document.getElementById("session-code").value.trim();
+      const status = document.getElementById("remote-status");
+      if (!code) {
+        status.textContent = "Status: Please enter a valid code.";
+        status.style.color = "#ff5555";
+        return;
+      }
+      status.textContent = `Status: Connecting to ${code}...`;
+      status.style.color = "#ffff55";
+      setTimeout(() => {
+        status.textContent = `Status: Connected to ${code}.`;
+        status.style.color = "#55ff55";
+      }, 1500);
+    }
+
+    // Save settings
+    function saveSettings() {
+      const theme = document.getElementById("theme-select").value;
+      const volume = document.getElementById("volume").value;
+      localStorage.setItem("theme", theme);
+      localStorage.setItem("volume", volume);
+      document.documentElement.classList.remove("theme-green", "theme-neon", "theme-dark");
+      document.documentElement.classList.add("theme-" + theme);
+      alert("Settings saved.");
+    }
+  </script>
+</head>
+<body>
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <button title="Home/Refresh" onclick="location.reload()">
+    <img
+      src="https://i.ibb.co/rRWmMd2D/hop-logo-1.png"
+      alt="Home"
+      style="width: 35px; height: 35px;"
+    />
+  </button>
+  <button title="Chat" onclick="togglePanel('chat')">💬</button>
+  <button title="Remote Access" onclick="togglePanel('remote')">🖥️</button>
+  <button title="Friends" onclick="togglePanel('friends')">👥</button>
+  <button title="Settings" onclick="togglePanel('settings')">⚙️</button>
+</div>
+
+<!-- PANEL CONTAINER -->
+<div id="panel-container">
+  <!-- HOMEPAGE CONTENT -->
+  <div id="home-content">
+    <h1>Welcome to Croak the official Overlay for HOP and Pepo's Dedicated Chat Space</h1>
+    <p>Quick links:</p>
+    <ul>
+      <ul>
+  <li><a href="https://gist.github.com/gamedev44/06ea20a5e85f724ba8057bc9d32df7e3" target="_blank">Projects</a></li>
+  <li><a href="https://gist.github.com/gamedev44" target="_blank">Gists</a></li>
+  <li><a href="#" onclick="alert('Conversations WIP – coming soon')">Conversations</a></li>
+  <li><a href="#" onclick="alert('Documentation not available yet')">Documentation</a></li>
+</ul>
+
+    </ul>
+    <p style="margin-top: 40px;">Recent updates will appear here on each page load.</p>
+  </div>
+
+  <!-- CHAT PANEL -->
+  <div id="chat-panel" class="panel" data-visible="false">
+    <div class="chat-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <div class="chat-title" style="font-size: 1.3em; font-weight: bold; color: var(--text-color);">Live Chat</div>
+      <button onclick="togglePanel('chat')" style="background: none; border: none; color: var(--text-color); font-size: 1.2em; cursor: pointer;">✕</button>
+    </div>
+    <div class="chat-messages" style="flex: 1; overflow-y: auto; max-height: calc(100% - 120px); padding-right: 4px; margin-bottom: 12px;">
+      <div class="chat-notice" style="text-align: center; font-size: 0.9em; margin-bottom: 10px; color: var(--button-hover);">
+        Welcome to HOPs Global Chat server! 
+        Be respectful and have fun.
+      </div>
+      <div class="chat-message" style="background-color: rgba(0, 32, 0, 0.9); padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+        <strong>Server:</strong> Snack Ops &nbsp;<span style="font-size: 0.8em; color: #999;">(10:02 AM)</span><br>
+        <span style="color: var(--text-color);">Reminder: Maintenance starts at 2 PM UTC.</span>
+      </div>
+      <div class="chat-message user-message" style="background-color: rgba(0, 48, 0, 0.9); padding: 8px; border-radius: 6px; margin-bottom: 8px; border-left: 2px solid var(--text-color);">
+        <strong>Kellic:</strong> @AsteRisk yo risk you free to chill &nbsp;<span style="font-size: 0.8em; color: #999;">(6:23 PM)</span>
+      </div>
+      <div class="chat-message user-message" style="background-color: rgba(0, 48, 0, 0.9); padding: 8px; border-radius: 6px; margin-bottom: 8px; border-left: 2px solid var(--text-color);">
+        <strong>Asterisk:</strong> will be soon bro ill come chill here in a bit &nbsp;<span style="font-size: 0.8em; color: #999;">(6:25 PM)</span>
+      </div>
+      <div class="chat-message dm-message" style="background-color: rgba(32, 0, 0, 0.9); padding: 8px; border-radius: 6px; margin-bottom: 8px; border-left: 2px solid #ff4444;">
+        <strong>DM from Bleedous:</strong> why tf the map got awkwardly decimated for no reason &nbsp;<span style="font-size: 0.8em; color: #999;">(6:31 PM)</span>
+      </div>
+      <div class="chat-message dm-message" style="background-color: rgba(32, 0, 0, 0.9); padding: 8px; border-radius: 6px; margin-bottom: 8px; border-left: 2px solid #ff4444;">
+        <strong>Invite from Wambo:</strong> /Join VC &nbsp;<span style="font-size: 0.8em; color: #999;">(6:48 PM)</span>
+      </div>
+      <div class="chat-older" style="text-align: center; font-size: 0.8em; color: #777; margin-top: 20px;">
+        <em>Scroll up to load earlier messages...</em>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="chat-input-area" style="position: absolute; bottom: 16px; left: 16px; right: 16px; display: flex; gap: 8px;">
+      <input
+        type="text"
+        id="chat-input"
+        placeholder="Type a message..."
+        style="flex: 1; padding: 8px; background-color: var(--input-bg); color: var(--text-color); border: 1px solid var(--input-border); border-radius: 4px;"
+        onkeydown="if(event.key === 'Enter') sendMessage()"
+      />
+      <button
+        onclick="sendMessage()"
+        style="padding: 8px 12px; background-color: var(--button-bg); color: var(--text-color); border: none; border-radius: 4px; cursor: pointer;"
+      >
+        Send
+      </button>
+    </div>
+
+    <script>
+      function sendMessage() {
+        const input = document.getElementById("chat-input");
+        const text = input.value.trim();
+        if (!text) return;
+        const container = document.querySelector("#chat-panel .chat-messages");
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("chat-message", "user-message");
+        msgDiv.style.cssText = "background-color: rgba(0, 48, 0, 0.9); padding: 8px; border-radius: 6px; margin-bottom: 8px; border-left: 2px solid var(--text-color);";
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        msgDiv.innerHTML = `<strong>You:</strong> ${text} &nbsp;<span style="font-size: 0.8em; color: #999;">(${time})</span>`;
+        container.insertBefore(msgDiv, container.lastElementChild);
+        input.value = "";
+        container.scrollTop = container.scrollHeight;
+      }
+    </script>
+  </div>
+
+  <!-- REMOTE PANEL -->
+  <div id="remote-panel" class="panel" data-visible="false">
+    <div class="panel-header">
+      Remote Access
+      <button class="close-btn" onclick="togglePanel('remote')">✕</button>
+    </div>
+    <div class="panel-content">
+      <p style="margin-bottom: 12px; color: var(--text-color);">
+        Enter the session code below or configure advanced options to customize your remote connection.
+      </p>
+      <label for="session-code" style="color: var(--text-color); font-weight: bold; margin-bottom: 4px;">Session Code:</label>
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <input
+          type="text"
+          id="session-code"
+          placeholder="e.g. 9DZL4X"
+          style="
+            flex: 1;
+            padding: 8px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--input-text);
+            border-radius: 4px;
+          "
+        />
+        <button
+          onclick="connectRemote()"
+          style="
+            padding: 8px 16px;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+          "
+          onmouseover="this.style.backgroundColor='var(--button-hover-bg)'"
+          onmouseout="this.style.backgroundColor='var(--button-bg)'"
+        >
+          Connect
+        </button>
+      </div>
+      <small style="display: block; margin-bottom: 16px; color: #aaaaaa;">
+        You can find your session code in the top right corner of your Pepo Chat dashboard.
+      </small>
+      <hr style="border: 1px solid var(--panel-border); margin: 16px 0;" />
+      <h3 style="margin-bottom: 10px; color: var(--panel-header-text);">Advanced Settings</h3>
+      <label for="stream-quality" style="color: var(--text-color); margin-bottom: 4px; display: block;">Streaming Quality:</label>
+      <select
+        id="stream-quality"
+        style="
+          width: 100%;
+          padding: 8px;
+          background-color: var(--input-bg);
+          color: var(--input-text);
+          border: 1px solid var(--input-border);
+          border-radius: 4px;
+          margin-bottom: 16px;
+        "
+      >
+        <option value="low">Low (480p)</option>
+        <option value="medium">Medium (720p)</option>
+        <option value="high">High (1080p)</option>
+      </select>
+      <div style="display: flex; align-items: center; margin-bottom: 16px;">
+        <input
+          type="checkbox"
+          id="audio-only"
+          style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;"
+        />
+        <label for="audio-only" style="color: var(--text-color);">Enable Audio-Only Mode</label>
+      </div>
+      <label for="custom-port" style="color: var(--text-color); margin-bottom: 4px; display: block;">Custom Port (optional):</label>
+      <input
+        type="number"
+        id="custom-port"
+        placeholder="e.g. 8080"
+        style="
+          width: 100%;
+          padding: 8px;
+          background-color: var(--input-bg);
+          border: 1px solid var(--input-border);
+          color: var(--input-text);
+          border-radius: 4px;
+          margin-bottom: 16px;
+        "
+      />
+      <button
+        onclick="copyConnectionLink()"
+        style="
+          width: 100%;
+          padding: 10px;
+          background-color: var(--button-bg);
+          color: var(--button-text);
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background 0.2s ease;
+          margin-bottom: 16px;
+        "
+        onmouseover="this.style.backgroundColor='var(--button-hover-bg)'"
+        onmouseout="this.style.backgroundColor='var(--button-bg)'"
+      >
+        Copy Connection Link
+      </button>
+      <div
+        id="remote-status"
+        style="
+          color: var(--text-color);
+          background-color: rgba(0, 0, 0, 0.2);
+          padding: 8px;
+          border-radius: 4px;
+          font-size: 0.9rem;
+          margin-bottom: 16px;
+        "
+      >
+        Status: Waiting for input...
+      </div>
+      <div
+        id="remote-log"
+        style="
+          height: 120px;
+          background-color: rgba(0, 0, 0, 0.15);
+          border: 1px solid var(--panel-border);
+          border-radius: 4px;
+          padding: 8px;
+          color: var(--text-color);
+          font-size: 0.85rem;
+          overflow-y: auto;
+        "
+      >
+        <div style="margin-bottom: 6px; color: #aaaaaa;">-- Connection logs will appear here --</div>
+      </div>
+      <div style="text-align: center; margin-top: 20px;">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg"
+          alt="Scan to Connect"
+          style="width: 80px; border: 2px solid var(--panel-border); border-radius: 8px; box-shadow: 0 0 8px var(--panel-border);"
+        />
+        <div style="font-size: 0.8rem; color: #bbbbbb; margin-top: 6px;">Scan to connect on mobile</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function copyConnectionLink() {
+      const code = document.getElementById("session-code").value.trim();
+      if (!code) {
+        alert("Please enter a session code first.");
+        return;
+      }
+      const link = `https://pepchat.example.com/connect?code=${encodeURIComponent(code)}`;
+      navigator.clipboard.writeText(link).then(() => {
+        alert("Connection link copied!");
+      });
+    }
+    function connectRemote() {
+      const code = document.getElementById("session-code").value.trim();
+      const status = document.getElementById("remote-status");
+      if (!code) {
+        status.textContent = "Status: Please enter a valid code.";
+        status.style.color = "#ff5555";
+        return;
+      }
+      status.textContent = `Status: Attempting to connect to ${code}...`;
+      status.style.color = "#ffff55";
+      setTimeout(() => {
+        status.textContent = `Status: Connected to ${code}. Streaming at ${
+          document.getElementById("stream-quality").value
+        }.`;
+        status.style.color = "#55ff55";
+        appendLog(`Connected at ${new Date().toLocaleTimeString()}`);
+      }, 2000);
+    }
+    function appendLog(message) {
+      const log = document.getElementById("remote-log");
+      const line = document.createElement("div");
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+    }
+  </script>
+
+  <!-- FRIENDS PANEL -->
+  <div id="friends-panel" class="panel" data-visible="false">
+    <div class="panel-header">
+      Friends List
+      <button class="close-btn" onclick="togglePanel('friends')">✕</button>
+    </div>
+    <div class="panel-content">
+      <div style="margin-bottom: 16px;">
+        <input
+          type="text"
+          id="friend-search"
+          placeholder="Search friends..."
+          style="
+            width: 100%;
+            padding: 8px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--input-text);
+            border-radius: 4px;
+            transition: border-color 0.2s ease;
+          "
+          oninput="filterFriends()"
+        />
+      </div>
+      <div id="friends-online-group" style="margin-bottom: 12px;">
+        <div style="margin-bottom: 8px; font-weight: bold; color: var(--panel-header-text);">
+          🟢 Online (<span id="count-online">0</span>)
+        </div>
+        <div id="friends-online-list">
+          <!-- Populated by script -->
+        </div>
+      </div>
+      <div id="friends-away-group" style="margin-bottom: 12px;">
+        <div style="margin-bottom: 8px; font-weight: bold; color: var(--panel-header-text);">
+          🟡 Away (<span id="count-away">0</span>)
+        </div>
+        <div id="friends-away-list">
+          <!-- Populated by script -->
+        </div>
+      </div>
+      <div id="friends-busy-group" style="margin-bottom: 12px;">
+        <div style="margin-bottom: 8px; font-weight: bold; color: var(--panel-header-text);">
+          🔴 Busy (<span id="count-busy">0</span>)
+        </div>
+        <div id="friends-busy-list">
+          <!-- Populated by script -->
+        </div>
+      </div>
+      <div id="friends-offline-group" style="margin-bottom: 16px;">
+        <div style="margin-bottom: 8px; font-weight: bold; color: var(--panel-header-text);">
+          ⚪ Offline (<span id="count-offline">0</span>)
+        </div>
+        <div id="friends-offline-list">
+          <!-- Populated by script -->
+        </div>
+      </div>
+      <hr style="border: 1px solid var(--panel-border); margin: 16px 0;" />
+      <div style="margin-bottom: 12px;">
+        <label for="new-friend-username" style="color: var(--text-color); font-weight: bold; margin-bottom: 4px; display: block;">
+          Add Friend by Username:
+        </label>
+        <div style="display: flex; gap: 8px;">
+          <input
+            type="text"
+            id="new-friend-username"
+            placeholder="Username#1234"
+            style="
+              flex: 1;
+              padding: 8px;
+              background-color: var(--input-bg);
+              border: 1px solid var(--input-border);
+              color: var(--input-text);
+              border-radius: 4px;
+            "
+          />
+          <button
+            onclick="addFriend()"
+            style="
+              padding: 8px 16px;
+              background-color: var(--button-bg);
+              color: var(--button-text);
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+              transition: background 0.2s ease;
+            "
+            onmouseover="this.style.backgroundColor='var(--button-hover-bg)'"
+            onmouseout="this.style.backgroundColor='var(--button-bg)'"
+          >
+            + Add
+          </button>
+        </div>
+        <small id="add-friend-feedback" style="color: #ff5555; display: none; margin-top: 4px; font-size: 0.85rem;"></small>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const friendsData = [
+      { username: 'Wambo', status: 'online' },
+      { username: 'Bleedous', status: 'busy' },
+      { username: 'HighTechy', status: 'away' }
+    ];
+    document.addEventListener('DOMContentLoaded', () => {
+      renderFriends();
+    });
+    function renderFriends() {
+      ['online', 'away', 'busy', 'offline'].forEach(status => {
+        document.getElementById(`friends-${status}-list`).innerHTML = '';
+      });
+      const counts = { online: 0, away: 0, busy: 0, offline: 0 };
+      friendsData.forEach(friend => {
+        const entry = document.createElement('div');
+        entry.classList.add('friend-entry');
+        entry.style.cssText = `
+          background-color: rgba(0, 30, 0, 0.85);
+          padding: 8px;
+          border-radius: 6px;
+          margin-bottom: 8px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          color: var(--text-color);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+        `;
+        const nameSpan = document.createElement('span');
+        nameSpan.innerHTML = `👤 <strong>${friend.username}</strong>`;
+        entry.appendChild(nameSpan);
+        const btnContainer = document.createElement('div');
+        btnContainer.style.display = 'flex';
+        btnContainer.style.gap = '6px';
+        const msgBtn = document.createElement('button');
+        msgBtn.textContent = '✉️';
+        msgBtn.title = 'Message';
+        msgBtn.onclick = () => alert(`Opening DM with ${friend.username}...`);
+        styleFriendActionButton(msgBtn);
+        btnContainer.appendChild(msgBtn);
+        if (friend.status === 'online') {
+          const inviteBtn = document.createElement('button');
+          inviteBtn.textContent = '🎮';
+          inviteBtn.title = 'Invite to Game';
+          inviteBtn.onclick = () => alert(`Inviting ${friend.username} to a game...`);
+          styleFriendActionButton(inviteBtn);
+          btnContainer.appendChild(inviteBtn);
+        }
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '🗑️';
+        removeBtn.title = 'Remove Friend';
+        removeBtn.onclick = () => removeFriend(friend.username);
+        styleFriendActionButton(removeBtn);
+        btnContainer.appendChild(removeBtn);
+        entry.appendChild(btnContainer);
+        counts[friend.status]++;
+        document.getElementById(`friends-${friend.status}-list`).appendChild(entry);
+      });
+      document.getElementById('count-online').textContent = counts.online;
+      document.getElementById('count-away').textContent = counts.away;
+      document.getElementById('count-busy').textContent = counts.busy;
+      document.getElementById('count-offline').textContent = counts.offline;
+    }
+    function styleFriendActionButton(btn) {
+      btn.style.cssText = `
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        border: none;
+        border-radius: 4px;
+        padding: 4px 6px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      `;
+      btn.onmouseover = () => (btn.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--button-hover-bg'));
+      btn.onmouseout = () => (btn.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--button-bg'));
+    }
+    function filterFriends() {
+      const query = document.getElementById('friend-search').value.trim().toLowerCase();
+      friendsData.forEach(friend => {
+        const listId = `friends-${friend.status}-list`;
+        const listContainer = document.getElementById(listId);
+        Array.from(listContainer.children).forEach(entry => {
+          const name = entry.querySelector('strong').textContent.toLowerCase();
+          entry.style.display = name.includes(query) ? 'flex' : 'none';
+        });
+      });
+    }
+    function addFriend() {
+      const usernameInput = document.getElementById('new-friend-username');
+      const feedback = document.getElementById('add-friend-feedback');
+      const username = usernameInput.value.trim();
+      if (!username) {
+        feedback.textContent = 'Please enter a username.';
+        feedback.style.display = 'block';
+        return;
+      }
+      if (friendsData.some(f => f.username.toLowerCase() === username.toLowerCase())) {
+        feedback.textContent = 'Friend already exists.';
+        feedback.style.display = 'block';
+        return;
+      }
+      feedback.style.display = 'none';
+      friendsData.push({ username, status: 'offline' });
+      renderFriends();
+      usernameInput.value = '';
+    }
+    function removeFriend(username) {
+      const index = friendsData.findIndex(f => f.username === username);
+      if (index !== -1) {
+        if (confirm(`Remove ${username} from your friends?`)) {
+          friendsData.splice(index, 1);
+          renderFriends();
+        }
+      }
+    }
+  </script>
+
+  <!-- SETTINGS PANEL -->
+  <div id="settings-panel" class="panel" data-visible="false">
+    <div class="panel-header">
+      Settings
+      <button class="close-btn" onclick="togglePanel('settings')">✕</button>
+    </div>
+    <div class="panel-content">
+      <div style="margin-bottom: 16px;">
+        <label for="theme-select" style="display: block; font-weight: bold; color: var(--text-color); margin-bottom: 4px;">
+          Theme:
+        </label>
+        <select
+          id="theme-select"
+          style="
+            width: 100%;
+            padding: 8px;
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+            transition: border-color 0.2s ease;
+          "
+          onfocus="this.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--button-hover-bg')"
+          onblur="this.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--input-border')"
+        >
+          <option value="green">Green</option>
+          <option value="neon">Neon</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <label for="volume" style="display: block; font-weight: bold; color: var(--text-color); margin-bottom: 4px;">
+          Sound Volume:
+        </label>
+        <input
+          type="range"
+          id="volume"
+          min="0"
+          max="100"
+          value="75"
+          style="
+            width: 100%;
+            cursor: pointer;
+            margin-bottom: 4px;
+          "
+          oninput="updateVolumeLabel(this.value)"
+        />
+        <div id="volume-label" style="font-size: 0.9rem; color: var(--text-color);">
+          Current volume: 75%
+        </div>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-weight: bold; color: var(--text-color); margin-bottom: 8px;">
+          Notifications:
+        </label>
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+          <input type="checkbox" id="notif-sounds" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;" />
+          <label for="notif-sounds" style="color: var(--text-color);">Enable Sound Alerts</label>
+        </div>
+        <div style="display: flex; align-items: center;">
+          <input type="checkbox" id="notif-push" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;" />
+          <label for="notif-push" style="color: var(--text-color);">Enable Push Notifications</label>
+        </div>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <label for="font-size" style="display: block; font-weight: bold; color: var(--text-color); margin-bottom: 4px;">
+          Chat Font Size:
+        </label>
+        <input
+          type="range"
+          id="font-size"
+          min="12"
+          max="24"
+          value="16"
+          style="
+            width: 100%;
+            cursor: pointer;
+            margin-bottom: 4px;
+          "
+          oninput="updateFontSize(this.value)"
+        />
+        <div id="font-size-label" style="font-size: 0.9rem; color: var(--text-color);">
+          Current font size: 16px
+        </div>
+      </div>
+      <hr style="border: 1px solid var(--panel-border); margin: 16px 0;" />
+      <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+        <button
+          onclick="saveSettings()"
+          style="
+            flex: 1;
+            padding: 10px 0;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+          "
+          onmouseover="this.style.backgroundColor='var(--button-hover-bg)'"
+          onmouseout="this.style.backgroundColor='var(--button-bg)'"
+        >
+          Save Settings
+        </button>
+        <button
+          onclick="resetDefaults()"
+          style="
+            flex: 1;
+            padding: 10px 0;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+          "
+          onmouseover="this.style.backgroundColor='var(--button-hover-bg)'"
+          onmouseout="this.style.backgroundColor='var(--button-bg)'"
+        >
+          Reset to Default
+        </button>
+      </div>
+      <div style="margin-top: 12px; text-align: center; color: var(--text-color); font-size: 0.9rem;">
+        Settings will apply immediately upon saving.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme') || 'green';
+      document.getElementById('theme-select').value = savedTheme;
+      const savedVolume = localStorage.getItem('volume') || 75;
+      document.getElementById('volume').value = savedVolume;
+      updateVolumeLabel(savedVolume);
+
+      const savedNotifSounds = localStorage.getItem('notif-sounds') === 'true';
+      document.getElementById('notif-sounds').checked = savedNotifSounds;
+      const savedNotifPush = localStorage.getItem('notif-push') === 'true';
+      document.getElementById('notif-push').checked = savedNotifPush;
+
+      const savedFontSize = localStorage.getItem('chat-font-size') || 16;
+      document.getElementById('font-size').value = savedFontSize;
+      updateFontSize(savedFontSize);
+    });
+
+    function updateVolumeLabel(value) {
+      document.getElementById('volume-label').textContent = `Current volume: ${value}%`;
+    }
+
+    function updateFontSize(value) {
+      document.getElementById('font-size-label').textContent = `Current font size: ${value}px`;
+      document.documentElement.style.setProperty('--chat-font-size', `${value}px`);
+    }
+
+    function saveSettings() {
+      const theme = document.getElementById('theme-select').value;
+      const volume = document.getElementById('volume').value;
+      const notifSounds = document.getElementById('notif-sounds').checked;
+      const notifPush = document.getElementById('notif-push').checked;
+      const chatFontSize = document.getElementById('font-size').value;
+
+      localStorage.setItem('theme', theme);
+      localStorage.setItem('volume', volume);
+      localStorage.setItem('notif-sounds', notifSounds);
+      localStorage.setItem('notif-push', notifPush);
+      localStorage.setItem('chat-font-size', chatFontSize);
+
+      document.documentElement.classList.remove('theme-green', 'theme-neon', 'theme-dark');
+      document.documentElement.classList.add('theme-' + theme);
+      alert('Settings saved.');
+    }
+
+    function resetDefaults() {
+      if (!confirm('Reset all settings to default values?')) return;
+      localStorage.removeItem('theme');
+      localStorage.removeItem('volume');
+      localStorage.removeItem('notif-sounds');
+      localStorage.removeItem('notif-push');
+      localStorage.removeItem('chat-font-size');
+
+      document.getElementById('theme-select').value = 'green';
+      document.getElementById('volume').value = 75;
+      updateVolumeLabel(75);
+      document.getElementById('notif-sounds').checked = false;
+      document.getElementById('notif-push').checked = false;
+      document.getElementById('font-size').value = 16;
+      updateFontSize(16);
+
+      document.documentElement.classList.remove('theme-green', 'theme-neon', 'theme-dark');
+      document.documentElement.classList.add('theme-green');
+      alert('Settings have been reset.');
+    }
+  </script>
+</div>
+</body>
+</html>
